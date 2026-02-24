@@ -168,40 +168,65 @@
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
             (function () {
-                var mapLat = <% - JSON.stringify(mapLat) %>;
-                var mapLon = <% - JSON.stringify(mapLon) %>;
-                var title = <% - JSON.stringify(details.title) %>;
-                var loc = <% - JSON.stringify(details.location) %>;
-                var country = <% - JSON.stringify(details.country) %>;
+                // Values safely embedded by EJS (correct <%- %> tags, no spaces)
+                var loc = <% - JSON.stringify((details.location || '').toString()) %>;
+                var country = <% - JSON.stringify((details.country || '').toString()) %>;
+                var title = <% - JSON.stringify((details.title || '').toString()) %>;
 
-                // Hide spinner immediately — coords already resolved server-side
-                document.getElementById('map-loading').style.display = 'none';
+                var loadingEl = document.getElementById('map-loading');
+                var wrapperEl = document.getElementById('map-wrapper');
+                var errorEl = document.getElementById('map-error');
 
-                if (mapLat === null || mapLon === null) {
-                    document.getElementById('map-error').style.display = 'block';
-                    return;
-                }
+                // Call Nominatim from the browser — page already loaded, map loads async
+                var query = encodeURIComponent(loc + ', ' + country);
+                var geoUrl = 'https://nominatim.openstreetmap.org/search?q=' + query + '&format=json&limit=1';
 
-                document.getElementById('map-wrapper').style.display = 'block';
+                var timer = setTimeout(function () {
+                    // If geocoding takes > 8s, show error
+                    loadingEl.style.display = 'none';
+                    errorEl.style.display = 'block';
+                }, 8000);
 
-                var map = L.map('map', { scrollWheelZoom: false }).setView([mapLat, mapLon], 12);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
-                    maxZoom: 19
-                }).addTo(map);
+                fetch(geoUrl, { headers: { 'Accept-Language': 'en' } })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        clearTimeout(timer);
+                        loadingEl.style.display = 'none';
 
-                var pin = L.divIcon({
-                    html: '<div style="width:22px;height:22px;background:#fe424d;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>',
-                    iconSize: [22, 22],
-                    iconAnchor: [11, 11],
-                    popupAnchor: [0, -16],
-                    className: ''
-                });
-                L.marker([mapLat, mapLon], { icon: pin }).addTo(map)
-                    .bindPopup('<b>' + title + '</b><br><small>' + loc + ', ' + country + '</small>')
-                    .openPopup();
+                        if (!data || data.length === 0) {
+                            errorEl.style.display = 'block';
+                            return;
+                        }
 
-                setTimeout(function () { map.invalidateSize(); }, 300);
+                        var mapLat = parseFloat(data[0].lat);
+                        var mapLon = parseFloat(data[0].lon);
+
+                        wrapperEl.style.display = 'block';
+
+                        var map = L.map('map', { scrollWheelZoom: false }).setView([mapLat, mapLon], 12);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+                            maxZoom: 19
+                        }).addTo(map);
+
+                        var pin = L.divIcon({
+                            html: '<div style="width:22px;height:22px;background:#fe424d;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>',
+                            iconSize: [22, 22],
+                            iconAnchor: [11, 11],
+                            popupAnchor: [0, -16],
+                            className: ''
+                        });
+                        L.marker([mapLat, mapLon], { icon: pin }).addTo(map)
+                            .bindPopup('<b>' + title + '</b><br><small>' + loc + ', ' + country + '</small>')
+                            .openPopup();
+
+                        setTimeout(function () { map.invalidateSize(); }, 300);
+                    })
+                    .catch(function () {
+                        clearTimeout(timer);
+                        loadingEl.style.display = 'none';
+                        errorEl.style.display = 'block';
+                    });
             })();
         </script>
     </body>
