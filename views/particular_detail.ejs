@@ -177,9 +177,9 @@
                 var wrapperEl = document.getElementById('map-wrapper');
                 var errorEl = document.getElementById('map-error');
 
-                // Call Nominatim from the browser — page already loaded, map loads async
+                // Call our own server proxy — server calls Nominatim with proper headers
                 var query = encodeURIComponent(loc + ', ' + country);
-                var geoUrl = 'https://nominatim.openstreetmap.org/search?q=' + query + '&format=json&limit=1';
+                var geoUrl = '/api/geocode?q=' + query;
 
                 var timer = setTimeout(function () {
                     // If geocoding takes > 8s, show error

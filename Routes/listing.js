@@ -48,4 +48,25 @@ router.delete("/deleteDetail/:id", isLogged, postlogin, wrapAsync(listingControl
 
 //Particular Listing dikhayega
 router.get("/moreabout/:id", wrapAsync(listingController.final));
+
+// Geocoding proxy — browser calls this, server calls Nominatim with proper headers
+router.get("/api/geocode", async (req, res) => {
+    const q = req.query.q;
+    if (!q) return res.json({ error: "No query" });
+    try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`;
+        const geoRes = await fetch(url, {
+            headers: {
+                'User-Agent': 'WanderLustApp/1.0 (someshsisodia18@gmail.com)',
+                'Accept-Language': 'en'
+            },
+            signal: AbortSignal.timeout(8000)
+        });
+        const data = await geoRes.json();
+        res.json(data);
+    } catch (e) {
+        res.json([]);
+    }
+});
+
 module.exports = router;
