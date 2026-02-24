@@ -3,6 +3,7 @@ if (process.env.NODE_ENV != "production") {
 }
 const express = require("express");
 const app = express();
+app.set('trust proxy', 1); // Required for Render/Heroku proxy — fixes secure cookies
 var cookieParser = require('cookie-parser')
 app.use(cookieParser("secret"));
 const session = require("express-session");
@@ -30,6 +31,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const user = require('./Models/user.js');
 app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views")); // explicit views path for production
 
 app.use(session({
     secret: process.env.SESSION_SECRET || 'wanderlust-fallback-secret',
