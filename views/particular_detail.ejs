@@ -168,54 +168,40 @@
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
             (function () {
-                var loc = '<%=details.location%>';
-                var country = '<%=details.country%>';
+                var mapLat = <% - JSON.stringify(mapLat) %>;
+                var mapLon = <% - JSON.stringify(mapLon) %>;
                 var title = <% - JSON.stringify(details.title) %>;
-                var query = encodeURIComponent(loc + ', ' + country);
-                var apiUrl = 'https://nominatim.openstreetmap.org/search?q=' + query + '&format=json&limit=1';
+                var loc = <% - JSON.stringify(details.location) %>;
+                var country = <% - JSON.stringify(details.country) %>;
 
-                var controller = new AbortController();
-                var timeoutId = setTimeout(function () { controller.abort(); }, 8000);
+                // Hide spinner immediately — coords already resolved server-side
+                document.getElementById('map-loading').style.display = 'none';
 
-                fetch(apiUrl, {
-                    signal: controller.signal,
-                    headers: { 'Accept-Language': 'en', 'X-Requested-With': 'WanderLustApp' }
-                })
-                    .then(function (res) { clearTimeout(timeoutId); return res.json(); })
-                    .then(function (data) {
-                        document.getElementById('map-loading').style.display = 'none';
-                        if (!data || data.length === 0) {
-                            document.getElementById('map-error').style.display = 'block';
-                            return;
-                        }
-                        var lat = parseFloat(data[0].lat);
-                        var lon = parseFloat(data[0].lon);
-                        document.getElementById('map-wrapper').style.display = 'block';
+                if (mapLat === null || mapLon === null) {
+                    document.getElementById('map-error').style.display = 'block';
+                    return;
+                }
 
-                        var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lon], 12);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
-                            maxZoom: 19
-                        }).addTo(map);
+                document.getElementById('map-wrapper').style.display = 'block';
 
-                        var pin = L.divIcon({
-                            html: '<div style="width:22px;height:22px;background:#fe424d;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>',
-                            iconSize: [22, 22],
-                            iconAnchor: [11, 11],
-                            popupAnchor: [0, -16],
-                            className: ''
-                        });
-                        L.marker([lat, lon], { icon: pin }).addTo(map)
-                            .bindPopup('<b>' + title + '</b><br><small>' + loc + ', ' + country + '</small>')
-                            .openPopup();
+                var map = L.map('map', { scrollWheelZoom: false }).setView([mapLat, mapLon], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+                    maxZoom: 19
+                }).addTo(map);
 
-                        setTimeout(function () { map.invalidateSize(); }, 300);
-                    })
-                    .catch(function () {
-                        clearTimeout(timeoutId);
-                        document.getElementById('map-loading').style.display = 'none';
-                        document.getElementById('map-error').style.display = 'block';
-                    });
+                var pin = L.divIcon({
+                    html: '<div style="width:22px;height:22px;background:#fe424d;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>',
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11],
+                    popupAnchor: [0, -16],
+                    className: ''
+                });
+                L.marker([mapLat, mapLon], { icon: pin }).addTo(map)
+                    .bindPopup('<b>' + title + '</b><br><small>' + loc + ', ' + country + '</small>')
+                    .openPopup();
+
+                setTimeout(function () { map.invalidateSize(); }, 300);
             })();
         </script>
     </body>

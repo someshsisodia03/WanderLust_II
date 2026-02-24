@@ -122,5 +122,27 @@ module.exports.final = async (req, res) => {
     res.locals.review = req.flash("reviewsuccess");
     res.locals.reviewe = req.flash("reviewdeleted");
     res.locals.err = req.flash("error");
-    res.render("particular_detail.ejs", { details });
+
+    // Server-side geocoding via Nominatim
+    let mapLat = null, mapLon = null;
+    try {
+        const query = encodeURIComponent(`${details.location}, ${details.country}`);
+        const geoUrl = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
+        const geoRes = await fetch(geoUrl, {
+            headers: {
+                'User-Agent': 'WanderLustApp/1.0 (someshsisodia18@gmail.com)',
+                'Accept-Language': 'en'
+            },
+            signal: AbortSignal.timeout(6000)   // 6s server-side timeout
+        });
+        const geoData = await geoRes.json();
+        if (geoData && geoData.length > 0) {
+            mapLat = parseFloat(geoData[0].lat);
+            mapLon = parseFloat(geoData[0].lon);
+        }
+    } catch (e) {
+        // Geocoding failed — map will show error state
+    }
+
+    res.render("particular_detail.ejs", { details, mapLat, mapLon });
 }
