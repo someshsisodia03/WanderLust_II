@@ -17,7 +17,7 @@
                             <i class="fa-solid fa-location-dot me-1" style="color:var(--brand);"></i>
                             <%=details.location%>, <%=details.country%>
                                     &nbsp;·&nbsp; Posted by <strong>
-                                        <%=details.owner.username%>
+                                        <%= details.owner ? details.owner.username : 'WanderLust' %>
                                     </strong>
                         </div>
                     </div>
@@ -49,7 +49,7 @@
                 </div>
 
                 <!-- Owner Actions -->
-                <% if(curruser && curruser._id.equals(details.owner._id)){ %>
+                <% if(curruser && details.owner && curruser._id.equals(details.owner._id)){ %>
                     <div class="d-flex gap-2 mt-3 flex-wrap">
                         <a href="/listing/edit/<%=details.id%>" class="btn-wl-outline" style="text-decoration:none;">
                             <i class="fa-solid fa-pen"></i> Edit Listing
@@ -170,7 +170,7 @@
             (function () {
                 var loc = '<%=details.location%>';
                 var country = '<%=details.country%>';
-                var title = <%- JSON.stringify(details.title) %>;
+                var title = <% - JSON.stringify(details.title) %>;
                 var query = encodeURIComponent(loc + ', ' + country);
                 var apiUrl = 'https://nominatim.openstreetmap.org/search?q=' + query + '&format=json&limit=1';
 
