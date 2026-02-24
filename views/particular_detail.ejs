@@ -1,115 +1,214 @@
-<% layout('boilerplate') -%>
-<body>
-    <%if(review && review.length){%>
-        <div class="alert alert-success alert-dismissible fade show col-6 offset-3" role="alert">
-            <%=review%>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>    
-    <%}%>
-    <%if(reviewe && reviewe.length){%>
-        <div class="alert alert-success alert-dismissible fade show col-6 offset-3" role="alert">
-            <%=reviewe%>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>    
-    <%}%>
-    <%if(err && err.length){%>
-        <div class="alert alert-danger alert-dismissible fade show col-6 offset-3" role="alert">
-            <%=err%>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>    
-    <%}%>
-    <h5 class="card-title text-center mb-3"><b style="font-size: larger;"><%=details.title%></b></h5>
-    <div style="display: flex;justify-content: center;">
-    <div class="card" style="width: 35rem; border: none;">
-        <img src="<%=details.image.url%>" class="card-img-top" alt="listing_image" style="height: 30%;">
-        <div class="card-body p-3" >
-            <p class="card-text"><b>PostedBy: </b><i><%=details.owner.username%></i></p>
-            <p class="card-text"><b>Description:</b> <%=details.description%></p>
-            <p class="card-text"><b>Price: </b><%=details.price%></p>
-            <p class="card-text"><b>Location: </b><%=details.location%></p>
-            <p class="card-text"><b>Country: </b><%=details.country%></p>
-            <%if(curruser&&curruser._id.equals(details.owner._id)){%>
-                <a href="/listing/edit/<%=details.id%>" class="btn btn-primary">Want to Update it</a>
-                <br><br>
-                <form method="post" action="/deleteDetail/<%=details.id%>?_method=DELETE"><button style="border-radius: 0.5rem;height: 2.3rem;border: none; background-color: rgba(86, 86, 220, 0.95);color: white;">Delete this post</button></form>
-            <%}%>
-            <hr>
-            <h5 class="text-center m-3"><b style="font-size: larger;">Leave a review</b></h5>
-            <div class="forms">
-            <form class="row g-3 col-md-12 needs-validation" method="post" action="/listing/<%=details.id%>/review" novalidate>
-                <div class="form-group">
-                <label class="mb-3" for="comment" style="font-size:larger;font-weight: 400;">Write a comment:</label>
-                <textarea class="form-control" name="comment" id="comment" placeholder="Share your experience!" rows="5" required></textarea>
-                <div class='invalid-feedback'>Please give us a review.</div>
+﻿<% layout('boilerplate') -%>
+
+    <body>
+        <div class="detail-wrapper">
+
+            <!-- Listing Image -->
+            <img src="<%=details.image.url%>" class="detail-img" alt="<%=details.title%>">
+
+            <!-- Main Info Card -->
+            <div class="detail-card">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                    <div>
+                        <div class="detail-title">
+                            <%=details.title%>
+                        </div>
+                        <div class="detail-meta">
+                            <i class="fa-solid fa-location-dot me-1" style="color:var(--brand);"></i>
+                            <%=details.location%>, <%=details.country%>
+                                    &nbsp;·&nbsp; Posted by <strong>
+                                        <%=details.owner.username%>
+                                    </strong>
+                        </div>
+                    </div>
+                    <div style="font-size:1.6rem; font-weight:800; color:var(--brand);">
+                        &#8377; <%=details.price.toLocaleString("en-IN")%>
+                            <span style="font-size:0.9rem; font-weight:400; color:var(--muted);">/night</span>
+                    </div>
                 </div>
-                <fieldset class="starability-slot ">
-                    <legend class = "col-lg-12">Rating:</legend>                    
-                    <input type="radio" id="no-rate" class="input-no-rate" name="rating" value="0" checked aria-label="No rating." />
-                    <input type="radio" id="first-rate1" name="rating" value="1" />
-                    <label for="first-rate1" title="Terrible">1 star</label>
-                    <input type="radio" id="first-rate2" name="rating" value="2" />
-                    <label for="first-rate2" title="Not good">2 stars</label>
-                    <input type="radio" id="first-rate3" name="rating" value="3" />
-                    <label for="first-rate3" title="Average">3 stars</label>
-                    <input type="radio" id="first-rate4" name="rating" value="4" />
-                    <label for="first-rate4" title="Very good">4 stars</label>
-                    <input type="radio" id="first-rate5" name="rating" value="5" />
-                    <label for="first-rate5" title="Amazing">5 stars</label>
-                </fieldset> 
-                <div>
-                    <button type="submit" class="btn btn-primary col-3">Submit</button>
+
+                <p class="detail-desc mt-3">
+                    <%=details.description%>
+                </p>
+
+                <div class="detail-info-grid">
+                    <div class="detail-info-item"><strong>Location</strong>
+                        <%=details.location%>
+                    </div>
+                    <div class="detail-info-item"><strong>Country</strong>
+                        <%=details.country%>
+                    </div>
+                    <% if(details.category){ %>
+                        <div class="detail-info-item"><strong>Category</strong>
+                            <%=details.category%>
+                        </div>
+                        <% } %>
+                            <div class="detail-info-item"><strong>Price/night</strong>&#8377;
+                                <%=details.price.toLocaleString("en-IN")%>
+                            </div>
                 </div>
-            </form>
+
+                <!-- Owner Actions -->
+                <% if(curruser && curruser._id.equals(details.owner._id)){ %>
+                    <div class="d-flex gap-2 mt-3 flex-wrap">
+                        <a href="/listing/edit/<%=details.id%>" class="btn-wl-outline" style="text-decoration:none;">
+                            <i class="fa-solid fa-pen"></i> Edit Listing
+                        </a>
+                        <form method="post" action="/deleteDetail/<%=details.id%>?_method=DELETE" style="margin:0;">
+                            <button class="btn-wl" type="submit"
+                                style="background:linear-gradient(135deg,#dc2626,#ef4444);">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </div>
+                    <% } %>
+            </div>
+
+            <!-- Leave a Review -->
+            <% if(curruser){ %>
+                <div class="detail-card mt-3">
+                    <div class="section-title"><i class="fa-solid fa-star" style="color:var(--brand);"></i> Leave a
+                        Review</div>
+                    <form class="needs-validation" method="post" action="/listing/<%=details.id%>/review" novalidate>
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Your Comment</label>
+                            <textarea class="form-control" name="comment" id="comment"
+                                placeholder="Share your experience at this place…" rows="4" required></textarea>
+                            <div class="invalid-feedback">Please write a review before submitting.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label>
+                            <fieldset class="starability-slot">
+                                <legend class="visually-hidden">Rating</legend>
+                                <input type="radio" id="no-rate" class="input-no-rate" name="rating" value="0" checked
+                                    aria-label="No rating." />
+                                <input type="radio" id="first-rate1" name="rating" value="1" />
+                                <label for="first-rate1" title="Terrible">1 star</label>
+                                <input type="radio" id="first-rate2" name="rating" value="2" />
+                                <label for="first-rate2" title="Not good">2 stars</label>
+                                <input type="radio" id="first-rate3" name="rating" value="3" />
+                                <label for="first-rate3" title="Average">3 stars</label>
+                                <input type="radio" id="first-rate4" name="rating" value="4" />
+                                <label for="first-rate4" title="Very good">4 stars</label>
+                                <input type="radio" id="first-rate5" name="rating" value="5" />
+                                <label for="first-rate5" title="Amazing">5 stars</label>
+                            </fieldset>
+                        </div>
+                        <button type="submit" class="btn-wl"><i class="fa-solid fa-paper-plane"></i> Submit
+                            Review</button>
+                    </form>
+                </div>
+                <% } %>
+
+                    <!-- Reviews List -->
+                    <% if(details.reviews.length> 0){ %>
+                        <div class="detail-card mt-3">
+                            <div class="section-title"><i class="fa-solid fa-comments" style="color:var(--brand);"></i>
+                                Reviews (<%=details.reviews.length%>)</div>
+                            <div class="row g-3">
+                                <% for(let x of details.reviews){ %>
+                                    <div class="col-md-6">
+                                        <div class="review-card">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="review-author"><i class="fa-solid fa-user-circle me-1"
+                                                        style="color:var(--brand);"></i>
+                                                    <%=x.author.username%>
+                                                </div>
+                                                <% if(curruser && curruser._id.equals(x.author._id)){ %>
+                                                    <form method="post"
+                                                        action="/delete/<%=details.id%>/review/<%=x.id%>"
+                                                        style="margin:0;">
+                                                        <button class="btn-review-delete"><i
+                                                                class="fa-solid fa-trash me-1"></i>Delete</button>
+                                                    </form>
+                                                    <% } %>
+                                            </div>
+                                            <p class="starability-result" data-rating="<%=x.rating%>"></p>
+                                            <p class="review-comment">"<%=x.comment%>"</p>
+                                            <% if(x.createdAt){ %>
+                                                <small style="color:var(--muted); font-size:0.75rem;">
+                                                    <i class="fa-regular fa-clock me-1"></i>
+                                                    <%= new Date(x.createdAt).toLocaleDateString('en-IN',
+                                                        {day:'numeric',month:'short',year:'numeric'}) %>
+                                                </small>
+                                                <% } %>
+                                        </div>
+                                    </div>
+                                    <% } %>
+                            </div>
+                        </div>
+                        <% } %>
+
+                            <!-- Map -->
+                            <div class="detail-card mt-3">
+                                <div class="section-title">
+                                    <i class="fa-solid fa-map-location-dot" style="color:var(--brand);"></i>
+                                    Location on Map
+                                </div>
+                                <div id="map-loading"
+                                    style="height:400px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f9fafb;border-radius:12px;gap:0.75rem;color:#6b7280;">
+                                    <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;color:#fe424d;"></i>
+                                    <span style="font-size:0.9rem;font-weight:500;">Loading map…</span>
+                                </div>
+                                <div class="map-wrapper" id="map-wrapper" style="display:none;">
+                                    <div id="map"></div>
+                                </div>
+                                <div id="map-error"
+                                    style="display:none;padding:1rem;background:#fff1f2;border-radius:12px;color:#b91c1c;font-size:0.9rem;text-align:center;">
+                                    <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                                    Could not find map location for <strong>
+                                        <%=details.location%>, <%=details.country%>
+                                    </strong>.
+                                </div>
+                            </div>
+
         </div>
-        <%if(details.reviews.length>0){%>
-            <hr>
-            <h5 class="card-title text-center mb-3"><b style="font-size: larger;">Reviews Listed Below</b></h5>
-            <div class="row mb-3">
-            <%for(x of details.reviews){%>
-            <div class="col-sm-6 mb-3">
-                <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">PostedBy: <%=x.author.username%></h5>
-                    <p class="starability-result card-text" data-rating="<%=x.rating%>" ></p>
-                    <p class="card-text">Comment: <i><%=x.comment%></i></p>
-                    <p class="card-text">Time: <%=x.CreatedAt%></p>
-                    <%if(curruser && curruser._id.equals(x.author._id)){%>
-                    <form method="post" action="/delete/<%=details.id%>/review/<%=x.id%>" ><button class="review-delete" >Delete</button></form>
-                    <%}%>
-                </div>
-                </div>
-            </div>
-            <%}%>
-            </div>
-        <%}%>
-        <hr>
-        <div id="map" style="height: 500px;width: 100%;"></div>
-        <!-- Map-Section -->
-        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-        <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
-            window.onload = function() {
-                function getLatLon(locationName, countryName, callback) {
-                    var geocoder = L.Control.Geocoder.nominatim();
-                    var query = `${locationName}, ${countryName}`;
-                    geocoder.geocode(query, function(results) {
-                        var latlng = results[0].center;
-                        callback(latlng.lat, latlng.lng);
-                    });
-                }
-                getLatLon('<%=details.location%>', '<%=details.country%>', function(lat, lon) {
-                        var map = L.map('map').setView([lat, lon], 10);
+            (function () {
+                var loc = '<%=details.location%>';
+                var country = '<%=details.country%>';
+                var title = <%- JSON.stringify(details.title) %>;
+                var query = encodeURIComponent(loc + ', ' + country);
+                var apiUrl = 'https://nominatim.openstreetmap.org/search?q=' + query + '&format=json&limit=1';
+
+                fetch(apiUrl, { headers: { 'Accept-Language': 'en' } })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        document.getElementById('map-loading').style.display = 'none';
+                        if (!data || data.length === 0) {
+                            document.getElementById('map-error').style.display = 'block';
+                            return;
+                        }
+                        var lat = parseFloat(data[0].lat);
+                        var lon = parseFloat(data[0].lon);
+                        document.getElementById('map-wrapper').style.display = 'block';
+
+                        var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lon], 12);
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+                            maxZoom: 19
                         }).addTo(map);
-                        
-                        L.marker([lat, lon]).addTo(map)
-                            .bindPopup('You will be here!')
+
+                        var pin = L.divIcon({
+                            html: '<div style="width:22px;height:22px;background:#fe424d;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>',
+                            iconSize: [22, 22],
+                            iconAnchor: [11, 11],
+                            popupAnchor: [0, -16],
+                            className: ''
+                        });
+                        L.marker([lat, lon], { icon: pin }).addTo(map)
+                            .bindPopup('<b>' + title + '</b><br><small>' + loc + ', ' + country + '</small>')
                             .openPopup();
-                });
-            };
+
+                        setTimeout(function () { map.invalidateSize(); }, 300);
+                    })
+                    .catch(function () {
+                        document.getElementById('map-loading').style.display = 'none';
+                        document.getElementById('map-error').style.display = 'block';
+                    });
+            })();
         </script>
-    </div> 
-</div>
-</div>
-</body>
+    </body>
