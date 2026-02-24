@@ -174,8 +174,14 @@
                 var query = encodeURIComponent(loc + ', ' + country);
                 var apiUrl = 'https://nominatim.openstreetmap.org/search?q=' + query + '&format=json&limit=1';
 
-                fetch(apiUrl, { headers: { 'Accept-Language': 'en' } })
-                    .then(function (res) { return res.json(); })
+                var controller = new AbortController();
+                var timeoutId = setTimeout(function () { controller.abort(); }, 8000);
+
+                fetch(apiUrl, {
+                    signal: controller.signal,
+                    headers: { 'Accept-Language': 'en', 'X-Requested-With': 'WanderLustApp' }
+                })
+                    .then(function (res) { clearTimeout(timeoutId); return res.json(); })
                     .then(function (data) {
                         document.getElementById('map-loading').style.display = 'none';
                         if (!data || data.length === 0) {
@@ -206,6 +212,7 @@
                         setTimeout(function () { map.invalidateSize(); }, 300);
                     })
                     .catch(function () {
+                        clearTimeout(timeoutId);
                         document.getElementById('map-loading').style.display = 'none';
                         document.getElementById('map-error').style.display = 'block';
                     });
