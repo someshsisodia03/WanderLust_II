@@ -169,9 +169,9 @@
         <script>
             (function () {
                 // Values safely embedded by EJS (correct <%- %> tags, no spaces)
-                var loc = <% - JSON.stringify((details.location || '').toString()) %>;
-                var country = <% - JSON.stringify((details.country || '').toString()) %>;
-                var title = <% - JSON.stringify((details.title || '').toString()) %>;
+                var loc = <%-JSON.stringify((details.location || '').toString()) %>;
+                var country = <%-JSON.stringify((details.country || '').toString()) %>;
+                var title = <%-JSON.stringify((details.title || '').toString()) %>;
 
                 var loadingEl = document.getElementById('map-loading');
                 var wrapperEl = document.getElementById('map-wrapper');
